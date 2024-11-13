@@ -1,13 +1,16 @@
 import { Sequelize } from "sequelize";
-import User from "./user.js";
-import Album from "./album.js";
-import Artist from "./artist.js";
-import Genre from "./genre.js";
-import Favorite from "./favorite.js";
+import dotenv from "dotenv";
+import defineUser from "./user.js";
+import defineAlbum from "./album.js";
+import defineArtist from "./artist.js";
+import defineGenre from "./genre.js";
+import defineFavorite from "./favorite.js";
+
+dotenv.config();
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,
-  process.env.DB_USER,
+  process.env.DB_USERNAME,
   process.env.DB_PASSWORD,
   {
     host: process.env.DB_HOST,
@@ -16,11 +19,11 @@ const sequelize = new Sequelize(
 );
 
 const models = {
-  User: User(sequelize),
-  Album: Album(sequelize),
-  Artist: Artist(sequelize),
-  Genre: Genre(sequelize),
-  Favorite: Favorite(sequelize),
+  User: defineUser(sequelize),
+  Album: defineAlbum(sequelize),
+  Artist: defineArtist(sequelize),
+  Genre: defineGenre(sequelize),
+  Favorite: defineFavorite(sequelize),
 };
 
 // Configurar associações

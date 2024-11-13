@@ -1,6 +1,6 @@
 import { Model, DataTypes } from "sequelize";
 
-const defineUser = (sequelize) => {
+const defineAlbum = (sequelize) => {
   class Album extends Model {
     static associate(models) {
       // Relacionamento com gêneros
@@ -23,8 +23,8 @@ const defineUser = (sequelize) => {
   Album.init(
     {
       title: DataTypes.STRING,
-      year: DataTypes.INTEGER,
-      cover: DataTypes.STRING,
+      releaseYear: DataTypes.INTEGER,
+      coverImage: DataTypes.STRING,
     },
     { sequelize, modelName: "Album" }
   );
@@ -32,4 +32,4 @@ const defineUser = (sequelize) => {
   return Album;
 };
 
-export default defineUser;
+export default defineAlbum;
