@@ -4,7 +4,11 @@ const genreController = {
   // Obter todos os gêneros
   async getAll(req, res) {
     try {
-      const genres = await prisma.genre.findMany(); // Substitui findAll
+      const genres = await prisma.genre.findMany({
+        include: {
+          albums: true, // Inclui os álbuns associados ao gênero
+        },
+      });
       res.json(genres);
     } catch (error) {
       console.error(error);
@@ -15,10 +19,17 @@ const genreController = {
   // Criar um novo gênero
   async create(req, res) {
     try {
-      const { name } = req.body;
+      const { name, albums } = req.body;
+
       const genre = await prisma.genre.create({
-        data: { name }, // Substitui create
+        data: {
+          name,
+          albums: {
+            connect: albums ? albums.map((id) => ({ id })) : [], // Conecta álbuns existentes
+          },
+        },
       });
+
       res.status(201).json(genre);
     } catch (error) {
       console.error(error);
@@ -30,10 +41,16 @@ const genreController = {
   async getById(req, res) {
     try {
       const { id } = req.params;
+
       const genre = await prisma.genre.findUnique({
-        where: { id: parseInt(id) }, // Substitui findByPk
+        where: { id: parseInt(id) },
+        include: {
+          albums: true, // Inclui os álbuns associados
+        },
       });
+
       if (!genre) return res.status(404).json({ error: "Genre not found" });
+
       res.json(genre);
     } catch (error) {
       console.error(error);
@@ -45,18 +62,24 @@ const genreController = {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const { name } = req.body;
+      const { name, albums } = req.body;
 
       // Verificar se o gênero existe
       const genre = await prisma.genre.findUnique({
         where: { id: parseInt(id) },
       });
+
       if (!genre) return res.status(404).json({ error: "Genre not found" });
 
       // Atualizar gênero
       const updatedGenre = await prisma.genre.update({
         where: { id: parseInt(id) },
-        data: { name },
+        data: {
+          name,
+          albums: {
+            set: albums ? albums.map((id) => ({ id })) : [], // Atualiza a relação com álbuns
+          },
+        },
       });
 
       res.json(updatedGenre);
@@ -75,6 +98,7 @@ const genreController = {
       const genre = await prisma.genre.findUnique({
         where: { id: parseInt(id) },
       });
+
       if (!genre) return res.status(404).json({ error: "Genre not found" });
 
       // Deletar gênero

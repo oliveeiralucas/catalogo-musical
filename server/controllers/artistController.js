@@ -4,7 +4,12 @@ const artistController = {
   // Obter todos os artistas
   async getAll(req, res) {
     try {
-      const artists = await prisma.artist.findMany(); // Substitui findAll
+      const artists = await prisma.artist.findMany({
+        include: {
+          albums: true, // Inclui álbuns associados ao artista
+          disks: true, // Inclui discos associados ao artista
+        },
+      });
       res.json(artists);
     } catch (error) {
       console.error(error);
@@ -15,10 +20,20 @@ const artistController = {
   // Criar um novo artista
   async create(req, res) {
     try {
-      const { name } = req.body;
+      const { name, albums, disks } = req.body;
+
       const artist = await prisma.artist.create({
-        data: { name }, // Substitui create
+        data: {
+          name,
+          albums: {
+            connect: albums ? albums.map((id) => ({ id })) : [], // Conecta álbuns existentes
+          },
+          disks: {
+            connect: disks ? disks.map((id) => ({ id })) : [], // Conecta discos existentes
+          },
+        },
       });
+
       res.status(201).json(artist);
     } catch (error) {
       console.error(error);
@@ -30,10 +45,17 @@ const artistController = {
   async getById(req, res) {
     try {
       const { id } = req.params;
+
       const artist = await prisma.artist.findUnique({
-        where: { id: parseInt(id) }, // Substitui findByPk
+        where: { id: parseInt(id) },
+        include: {
+          albums: true, // Inclui álbuns associados
+          disks: true, // Inclui discos associados
+        },
       });
+
       if (!artist) return res.status(404).json({ error: "Artist not found" });
+
       res.json(artist);
     } catch (error) {
       console.error(error);
@@ -45,18 +67,25 @@ const artistController = {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const { name } = req.body;
+      const { name, albums, disks } = req.body;
 
-      // Verificar se o artista existe
       const artist = await prisma.artist.findUnique({
         where: { id: parseInt(id) },
       });
+
       if (!artist) return res.status(404).json({ error: "Artist not found" });
 
-      // Atualizar artista
       const updatedArtist = await prisma.artist.update({
         where: { id: parseInt(id) },
-        data: { name },
+        data: {
+          name,
+          albums: {
+            set: albums ? albums.map((id) => ({ id })) : [], // Atualiza álbuns relacionados
+          },
+          disks: {
+            set: disks ? disks.map((id) => ({ id })) : [], // Atualiza discos relacionados
+          },
+        },
       });
 
       res.json(updatedArtist);
@@ -71,13 +100,12 @@ const artistController = {
     try {
       const { id } = req.params;
 
-      // Verificar se o artista existe
       const artist = await prisma.artist.findUnique({
         where: { id: parseInt(id) },
       });
+
       if (!artist) return res.status(404).json({ error: "Artist not found" });
 
-      // Deletar artista
       await prisma.artist.delete({
         where: { id: parseInt(id) },
       });

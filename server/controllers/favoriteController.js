@@ -7,7 +7,13 @@ const favoriteController = {
       const favorites = await prisma.favorite.findMany({
         include: {
           user: true, // Inclui os dados do usuário relacionado
-          album: true, // Inclui os dados do álbum relacionado
+          album: {
+            include: {
+              genres: true, // Inclui os gêneros do álbum
+              disks: { include: { artist: true } }, // Inclui os discos e seus artistas
+              artist: true, // Inclui o artista do álbum
+            },
+          },
         },
       });
       res.json(favorites);
@@ -21,6 +27,22 @@ const favoriteController = {
   async create(req, res) {
     try {
       const { userId, albumId } = req.body;
+
+      // Verificar se o álbum e o usuário existem
+      const userExists = await prisma.user.findUnique({
+        where: { id: parseInt(userId) },
+      });
+      const albumExists = await prisma.album.findUnique({
+        where: { id: parseInt(albumId) },
+      });
+
+      if (!userExists) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if (!albumExists) {
+        return res.status(404).json({ error: "Album not found" });
+      }
 
       const favorite = await prisma.favorite.create({
         data: {

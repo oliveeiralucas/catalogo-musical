@@ -4,7 +4,13 @@ const albumController = {
   // Obter todos os álbuns
   async getAll(req, res) {
     try {
-      const albums = await prisma.album.findMany(); // Substitui findAll
+      const albums = await prisma.album.findMany({
+        include: {
+          genres: true, // Inclui gêneros associados
+          disks: { include: { artist: true } }, // Inclui discos e os artistas dos discos
+          artist: true, // Inclui o artista do álbum
+        },
+      });
       res.json(albums);
     } catch (error) {
       console.error(error);
@@ -15,15 +21,36 @@ const albumController = {
   // Criar um novo álbum
   async create(req, res) {
     try {
-      const { title, releaseYear, coverImage, artistId } = req.body;
+      const {
+        title,
+        releaseYear,
+        coverImage,
+        artistId,
+        description,
+        genres,
+        disks,
+      } = req.body;
+
       const album = await prisma.album.create({
         data: {
           title,
           releaseYear,
           coverImage,
+          description,
           artistId,
-        }, // Substitui create
+          genres: {
+            connect: genres.map((id) => ({ id })), // Conecta gêneros existentes
+          },
+          disks: {
+            create: disks.map((disk) => ({
+              title: disk.title,
+              coverImage: disk.coverImage,
+              artistId: disk.artistId, // Artista associado ao disco
+            })),
+          },
+        },
       });
+
       res.status(201).json(album);
     } catch (error) {
       console.error(error);
@@ -35,10 +62,18 @@ const albumController = {
   async getById(req, res) {
     try {
       const { id } = req.params;
+
       const album = await prisma.album.findUnique({
-        where: { id: parseInt(id) }, // Substitui findByPk
+        where: { id: parseInt(id) },
+        include: {
+          genres: true, // Inclui gêneros
+          disks: { include: { artist: true } }, // Inclui discos e os artistas dos discos
+          artist: true, // Inclui o artista do álbum
+        },
       });
+
       if (!album) return res.status(404).json({ error: "Album not found" });
+
       res.json(album);
     } catch (error) {
       console.error(error);
@@ -50,18 +85,42 @@ const albumController = {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const { title, releaseYear, coverImage, artistId } = req.body;
+      const {
+        title,
+        releaseYear,
+        coverImage,
+        artistId,
+        description,
+        genres,
+        disks,
+      } = req.body;
 
-      // Verificar se o álbum existe
       const album = await prisma.album.findUnique({
         where: { id: parseInt(id) },
       });
+
       if (!album) return res.status(404).json({ error: "Album not found" });
 
-      // Atualizar álbum
       const updatedAlbum = await prisma.album.update({
         where: { id: parseInt(id) },
-        data: { title, releaseYear, coverImage, artistId },
+        data: {
+          title,
+          releaseYear,
+          coverImage,
+          description,
+          artistId,
+          genres: {
+            set: genres.map((id) => ({ id })), // Atualiza gêneros relacionados
+          },
+          disks: {
+            deleteMany: {}, // Remove todos os discos relacionados
+            create: disks.map((disk) => ({
+              title: disk.title,
+              coverImage: disk.coverImage,
+              artistId: disk.artistId,
+            })),
+          },
+        },
       });
 
       res.json(updatedAlbum);
@@ -76,13 +135,12 @@ const albumController = {
     try {
       const { id } = req.params;
 
-      // Verificar se o álbum existe
       const album = await prisma.album.findUnique({
         where: { id: parseInt(id) },
       });
+
       if (!album) return res.status(404).json({ error: "Album not found" });
 
-      // Deletar álbum
       await prisma.album.delete({
         where: { id: parseInt(id) },
       });

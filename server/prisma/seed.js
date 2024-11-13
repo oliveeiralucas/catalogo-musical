@@ -7,6 +7,7 @@ async function main() {
   // Limpar dados existentes
   await prisma.favorite.deleteMany();
   await prisma.album.deleteMany();
+  await prisma.disk.deleteMany();
   await prisma.artist.deleteMany();
   await prisma.genre.deleteMany();
   await prisma.user.deleteMany();
@@ -25,15 +26,18 @@ async function main() {
     prisma.artist.create({ data: { name: "Adele" } }),
   ]);
 
-  // Inserir álbuns
+  // Inserir álbuns com relação N:N com gêneros
   const albums = await Promise.all([
     prisma.album.create({
       data: {
         title: "1989",
         releaseYear: 2014,
         coverImage: "/path/to/1989.jpg",
-        genreId: genres[0].id, // Pop
-        artistId: artists[0].id, // Taylor Swift
+        description: "Álbum icônico de Taylor Swift",
+        artistId: artists[0].id,
+        genres: {
+          connect: [{ id: genres[0].id }, { id: genres[2].id }], // Pop e Rock
+        },
       },
     }),
     prisma.album.create({
@@ -41,8 +45,11 @@ async function main() {
         title: "Divide",
         releaseYear: 2017,
         coverImage: "/path/to/divide.jpg",
-        genreId: genres[0].id, // Pop
-        artistId: artists[1].id, // Ed Sheeran
+        description: "Álbum de sucesso de Ed Sheeran",
+        artistId: artists[1].id,
+        genres: {
+          connect: [{ id: genres[0].id }], // Pop
+        },
       },
     }),
     prisma.album.create({
@@ -50,8 +57,45 @@ async function main() {
         title: "25",
         releaseYear: 2015,
         coverImage: "/path/to/25.jpg",
-        genreId: genres[1].id, // Soul
-        artistId: artists[2].id, // Adele
+        description: "Álbum poderoso de Adele",
+        artistId: artists[2].id,
+        genres: {
+          connect: [{ id: genres[1].id }], // Soul
+        },
+      },
+    }),
+  ]);
+
+  // Inserir discos relacionados aos álbuns
+  await Promise.all([
+    prisma.disk.create({
+      data: {
+        title: "Disk 1 - 1989",
+        coverImage: "/path/to/disk1_1989.jpg",
+        artistId: artists[0].id,
+        albums: {
+          connect: [{ id: albums[0].id }], // Relacionado ao álbum "1989"
+        },
+      },
+    }),
+    prisma.disk.create({
+      data: {
+        title: "Disk 1 - Divide",
+        coverImage: "/path/to/disk1_divide.jpg",
+        artistId: artists[1].id,
+        albums: {
+          connect: [{ id: albums[1].id }], // Relacionado ao álbum "Divide"
+        },
+      },
+    }),
+    prisma.disk.create({
+      data: {
+        title: "Disk 1 - 25",
+        coverImage: "/path/to/disk1_25.jpg",
+        artistId: artists[2].id,
+        albums: {
+          connect: [{ id: albums[2].id }], // Relacionado ao álbum "25"
+        },
       },
     }),
   ]);
