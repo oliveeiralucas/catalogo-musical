@@ -1,10 +1,10 @@
-import models from "../models/index.js";
-const { Album } = models;
+import prisma from "../lib/db.js";
 
 const albumController = {
+  // Obter todos os álbuns
   async getAll(req, res) {
     try {
-      const albums = await Album.findAll();
+      const albums = await prisma.album.findMany(); // Substitui findAll
       res.json(albums);
     } catch (error) {
       console.error(error);
@@ -12,10 +12,18 @@ const albumController = {
     }
   },
 
+  // Criar um novo álbum
   async create(req, res) {
     try {
-      const { title, year, cover, artistId } = req.body;
-      const album = await Album.create({ title, year, cover, artistId });
+      const { title, releaseYear, coverImage, artistId } = req.body;
+      const album = await prisma.album.create({
+        data: {
+          title,
+          releaseYear,
+          coverImage,
+          artistId,
+        }, // Substitui create
+      });
       res.status(201).json(album);
     } catch (error) {
       console.error(error);
@@ -23,10 +31,13 @@ const albumController = {
     }
   },
 
+  // Obter álbum por ID
   async getById(req, res) {
     try {
       const { id } = req.params;
-      const album = await Album.findByPk(id);
+      const album = await prisma.album.findUnique({
+        where: { id: parseInt(id) }, // Substitui findByPk
+      });
       if (!album) return res.status(404).json({ error: "Album not found" });
       res.json(album);
     } catch (error) {
@@ -35,28 +46,47 @@ const albumController = {
     }
   },
 
+  // Atualizar álbum por ID
   async update(req, res) {
     try {
       const { id } = req.params;
-      const { title, year, cover, artistId } = req.body;
-      const album = await Album.findByPk(id);
+      const { title, releaseYear, coverImage, artistId } = req.body;
+
+      // Verificar se o álbum existe
+      const album = await prisma.album.findUnique({
+        where: { id: parseInt(id) },
+      });
       if (!album) return res.status(404).json({ error: "Album not found" });
 
-      await album.update({ title, year, cover, artistId });
-      res.json(album);
+      // Atualizar álbum
+      const updatedAlbum = await prisma.album.update({
+        where: { id: parseInt(id) },
+        data: { title, releaseYear, coverImage, artistId },
+      });
+
+      res.json(updatedAlbum);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Failed to update album" });
     }
   },
 
+  // Deletar álbum por ID
   async delete(req, res) {
     try {
       const { id } = req.params;
-      const album = await Album.findByPk(id);
+
+      // Verificar se o álbum existe
+      const album = await prisma.album.findUnique({
+        where: { id: parseInt(id) },
+      });
       if (!album) return res.status(404).json({ error: "Album not found" });
 
-      await album.destroy();
+      // Deletar álbum
+      await prisma.album.delete({
+        where: { id: parseInt(id) },
+      });
+
       res.json({ message: "Album deleted successfully" });
     } catch (error) {
       console.error(error);
