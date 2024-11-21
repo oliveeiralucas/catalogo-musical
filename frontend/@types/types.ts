@@ -29,3 +29,12 @@ export interface Disco {
   artistas: DiscoArtista[];
   generos: DiscoGenero[];
 }
+
+export interface GeneroDetalhes extends Genero {
+  artistas: {
+    artista: Artista;
+  }[];
+  discos: {
+    disco: Disco;
+  }[];
+}
