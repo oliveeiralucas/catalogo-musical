@@ -1,0 +1,75 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Disco {
+  id            Int             @id @default(autoincrement())
+  titulo        String
+  anoLancamento Int
+  capa          String?
+  popularidade  Int             @default(0)
+  faixas        Faixa[]
+  artistas      DiscoArtista[]
+  generos       DiscoGenero[]
+}
+
+model Artista {
+  id       Int             @id @default(autoincrement())
+  nome     String
+  discos   DiscoArtista[]
+  generos  ArtistaGenero[]
+}
+
+model Genero {
+  id       Int             @id @default(autoincrement())
+  nome     String          @unique
+  artistas ArtistaGenero[]
+  discos   DiscoGenero[]
+  faixas   FaixaGenero[]
+}
+
+model Faixa {
+  id       Int            @id @default(autoincrement())
+  titulo   String
+  duracao  Int
+  discoId  Int?
+  disco    Disco?         @relation(fields: [discoId], references: [id])
+  generos  FaixaGenero[]
+}
+
+model DiscoArtista {
+  discoId   Int
+  artistaId Int
+  disco     Disco   @relation(fields: [discoId], references: [id])
+  artista   Artista @relation(fields: [artistaId], references: [id])
+  @@id([discoId, artistaId])
+}
+
+model DiscoGenero {
+  discoId  Int
+  generoId Int
+  disco    Disco  @relation(fields: [discoId], references: [id])
+  genero   Genero @relation(fields: [generoId], references: [id])
+  @@id([discoId, generoId])
+}
+
+model ArtistaGenero {
+  artistaId Int
+  generoId  Int
+  artista   Artista @relation(fields: [artistaId], references: [id])
+  genero    Genero  @relation(fields: [generoId], references: [id])
+  @@id([artistaId, generoId])
+}
+
+model FaixaGenero {
+  faixaId   Int
+  generoId  Int
+  faixa     Faixa  @relation(fields: [faixaId], references: [id])
+  genero    Genero @relation(fields: [generoId], references: [id])
+  @@id([faixaId, generoId])
+}
