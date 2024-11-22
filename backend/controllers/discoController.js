@@ -144,7 +144,7 @@ export const getLatestDiscos = async (req, res) => {
     const discos = await prisma.disco.findMany({
       take: quantidade,
       orderBy: {
-        anoLancamento: 'desc',
+        anoLancamento: "desc",
       },
       include: {
         artistas: {
@@ -167,7 +167,7 @@ export const getPopularDiscos = async (req, res) => {
     const discos = await prisma.disco.findMany({
       take: quantidade,
       orderBy: {
-        popularidade: 'desc',
+        popularidade: "desc",
       },
       include: {
         artistas: {
@@ -209,12 +209,17 @@ export const deleteDisco = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await prisma.disco.delete({
-      where: { id: Number(id) },
+    const deletedDisco = await prisma.disco.delete({
+      where: { id: Number(id) }, // Certifique-se de que o ID é convertido para número
     });
 
-    res.json({ message: "Disco deletado com sucesso" });
+    if (!deletedDisco) {
+      return res.status(404).json({ error: "Disco não encontrado." });
+    }
+
+    res.json({ message: "Disco removido com sucesso." });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Erro ao remover disco:", error);
+    res.status(500).json({ error: "Erro ao remover disco." });
   }
 };

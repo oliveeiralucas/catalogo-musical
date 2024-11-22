@@ -38,14 +38,14 @@ model Faixa {
   titulo   String
   duracao  Int
   discoId  Int?
-  disco    Disco?         @relation(fields: [discoId], references: [id])
+  disco    Disco?         @relation(fields: [discoId], references: [id], onDelete: Cascade)
   generos  FaixaGenero[]
 }
 
 model DiscoArtista {
   discoId   Int
   artistaId Int
-  disco     Disco   @relation(fields: [discoId], references: [id])
+  disco     Disco   @relation(fields: [discoId], references: [id], onDelete: Cascade)
   artista   Artista @relation(fields: [artistaId], references: [id])
   @@id([discoId, artistaId])
 }
@@ -53,7 +53,7 @@ model DiscoArtista {
 model DiscoGenero {
   discoId  Int
   generoId Int
-  disco    Disco  @relation(fields: [discoId], references: [id])
+  disco    Disco  @relation(fields: [discoId], references: [id], onDelete: Cascade)
   genero   Genero @relation(fields: [generoId], references: [id])
   @@id([discoId, generoId])
 }
