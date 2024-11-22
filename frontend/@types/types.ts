@@ -26,8 +26,13 @@ export interface Disco {
   titulo: string;
   anoLancamento: number;
   capa: string;
-  artistas: DiscoArtista[];
-  generos: DiscoGenero[];
+  artistas: {
+    artista: Artista;
+  }[];
+  generos: {
+    genero: Genero;
+  }[];
+  faixas: Faixa[];
 }
 
 export interface GeneroDetalhes extends Genero {
@@ -36,5 +41,15 @@ export interface GeneroDetalhes extends Genero {
   }[];
   discos: {
     disco: Disco;
+  }[];
+}
+
+export interface Faixa {
+  id: number;
+  titulo: string;
+  duracao: number;
+  discoId: number;
+  generos: {
+    genero: Genero;
   }[];
 }

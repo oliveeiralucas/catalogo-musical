@@ -90,24 +90,32 @@ export const getDiscos = async (req, res) => {
 };
 
 // Obter um disco por ID
+// Obter um disco pelo ID
 export const getDiscoById = async (req, res) => {
   try {
     const { id } = req.params;
+
     const disco = await prisma.disco.findUnique({
       where: { id: Number(id) },
       include: {
-        faixas: true,
         artistas: {
-          include: { artista: true },
+          include: {
+            artista: true,
+          },
         },
         generos: {
-          include: { genero: true },
+          include: {
+            genero: true,
+          },
         },
+        faixas: true,
       },
     });
+
     if (!disco) {
       return res.status(404).json({ error: "Disco não encontrado" });
     }
+
     res.json(disco);
   } catch (error) {
     res.status(500).json({ error: error.message });
